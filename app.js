@@ -65,6 +65,7 @@ form.addEventListener("submit", async (e) => {
         await pollJobStatus(taskId);
 
     } catch (err) {
+        console.log("Error:", err);
         errorMessage.textContent = "Failed to analyze repositories.";
         errorState.classList.remove("hidden");
         loadingState.classList.add("hidden");
