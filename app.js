@@ -60,17 +60,16 @@ form.addEventListener("submit", async (e) => {
         if (!response.ok) throw new Error("Failed to start job");
 
         const data = await response.json();
-        console.log("Data after posting:", data);
-        const taskId = data?.payload?.task_id;
+        console.log("POST response:", data);
+
+        const taskId = data?.task_id;
+
+        if (!taskId) throw new Error("Task ID missing");
 
         await pollJobStatus(taskId);
 
     } catch (err) {
-        console.log("Error:", err);
-        errorMessage.textContent = "Failed to analyze repositories.";
-        errorState.classList.remove("hidden");
-        loadingState.classList.add("hidden");
-        submitBtn.classList.remove("loading");
+        showError("Failed to analyze repositories.");
     }
 });
 
@@ -87,26 +86,34 @@ async function pollJobStatus(taskId) {
     const interval = setInterval(async () => {
         try {
             attempts++;
-
             loadingStatus.textContent = `Analyzing... (${attempts})`;
 
             const res = await fetch(statusUrl);
             const data = await res.json();
 
-            if (data.payload.status === "SUCCESS") {
+            console.log("STATUS response:", data);
+
+            const status = data?.payload?.status || data?.status;
+
+            if (status === "SUCCESS") {
                 clearInterval(interval);
                 loadingStatus.textContent = "Finalizing results...";
                 await fetchFinalResult(taskId);
             }
 
+            if (status === "FAILURE") {
+                clearInterval(interval);
+                showError("Analysis failed.");
+            }
+
             if (attempts >= maxAttempts) {
                 clearInterval(interval);
-                throw new Error("Timeout");
+                showError("Analysis timed out.");
             }
 
         } catch (err) {
             clearInterval(interval);
-            showError();
+            showError("Polling failed.");
         }
     }, 2000);
 }
@@ -118,20 +125,26 @@ async function fetchFinalResult(taskId) {
         const res = await fetch(resultUrl);
         const data = await res.json();
 
-        renderResults(data.payload.result);
+        console.log("RESULT response:", data);
+
+        const result = data?.payload?.result;
+
+        if (!result) throw new Error("Invalid result");
+
+        renderResults(result);
 
     } catch (err) {
-        showError();
+        showError("Failed to fetch results.");
     } finally {
         loadingState.classList.add("hidden");
         submitBtn.classList.remove("loading");
     }
 }
 
-function showError() {
+function showError(message) {
     loadingState.classList.add("hidden");
     submitBtn.classList.remove("loading");
-    errorMessage.textContent = "Analysis failed or timed out.";
+    errorMessage.textContent = message;
     errorState.classList.remove("hidden");
 }
 
