@@ -40,10 +40,10 @@ form.addEventListener("submit", async (e) => {
     const peers = Array.from(peerInputs).map(input => input.value);
     const useGemini = geminiToggle.checked;
 
-    const gitUrls = [primaryUrl, ...peers,"https://github.com/utkarsh309/QuantityMeasurementApp"];
+    const gitUrls = [primaryUrl, ...peers];
 
     try {
-        const response = await fetch("https://api.blaes.bridgelabz.com/api/v1/plag-check/check-plagiarism", {
+        const response = await fetch("https://bl-assginiq-automation-187791816934.asia-south1.run.app/api/v1/plag-check/check-plagiarism", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
