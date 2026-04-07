@@ -1416,3 +1416,12 @@ input {
     color: #2e7d32;
     border: 1px solid #52c41a;
 }
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* smooth scroll on mobile */
+}
+
+.result-table {
+    min-width: 700px;
+}
