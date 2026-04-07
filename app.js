@@ -57,18 +57,16 @@ form.addEventListener("submit", async (e) => {
             })
         });
 
-        if (!response.ok) throw new Error("Failed to start job");
+        if (!response.ok) throw new Error();
 
         const data = await response.json();
-        console.log("POST response:", data);
-
         const taskId = data?.task_id;
 
-        if (!taskId) throw new Error("Task ID missing");
+        if (!taskId) throw new Error();
 
         await pollJobStatus(taskId);
 
-    } catch (err) {
+    } catch {
         showError("Failed to analyze repositories.");
     }
 });
@@ -91,8 +89,6 @@ async function pollJobStatus(taskId) {
             const res = await fetch(statusUrl);
             const data = await res.json();
 
-            console.log("STATUS response:", data);
-
             const status = data?.payload?.status || data?.status;
 
             if (status === "SUCCESS") {
@@ -111,7 +107,7 @@ async function pollJobStatus(taskId) {
                 showError("Analysis timed out.");
             }
 
-        } catch (err) {
+        } catch {
             clearInterval(interval);
             showError("Polling failed.");
         }
@@ -125,15 +121,13 @@ async function fetchFinalResult(taskId) {
         const res = await fetch(resultUrl);
         const data = await res.json();
 
-        console.log("RESULT response:", data);
+        const results = data?.payload?.result?.result;
 
-        const result = data?.payload?.result;
+        if (!results || !Array.isArray(results)) throw new Error();
 
-        if (!result) throw new Error("Invalid result");
+        renderResults(results);
 
-        renderResults(result);
-
-    } catch (err) {
+    } catch {
         showError("Failed to fetch results.");
     } finally {
         loadingState.classList.add("hidden");
