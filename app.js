@@ -148,60 +148,64 @@ function showError(message) {
     errorState.classList.remove("hidden");
 }
 
-function renderResults(result) {
+function renderResults(results) {
     resultsSection.innerHTML = "";
 
-    const header = document.createElement("div");
-    header.className = "result-summary";
-    header.innerHTML = `
-        <div class="summary-card">
-            <h2>${result.student}</h2>
-            <p>${result.total_compared} Comparisons Analyzed</p>
-        </div>
-    `;
-    resultsSection.appendChild(header);
+    results.forEach((result) => {
+        const header = document.createElement("div");
+        header.className = "result-summary";
 
-    result.comparisons.forEach((comp) => {
-        const plagiarismClass = comp.is_plagiarism ? "flag-red" : "flag-green";
-        const plagiarismText = comp.is_plagiarism ? "Plagiarism Detected" : "Clean";
-
-        const card = document.createElement("div");
-        card.className = "result-card enhanced";
-
-        card.innerHTML = `
-            <div class="card-header">
-                <h3>${comp.other_student}</h3>
-                <span class="plag-flag ${plagiarismClass}">
-                    ${plagiarismText}
-                </span>
-            </div>
-
-            <div class="metric">
-                <label>Textual Similarity</label>
-                <div class="progress-bar">
-                    <div class="progress" style="width:${comp.textual_similarity * 100}%"></div>
-                </div>
-                <span>${(comp.textual_similarity * 100).toFixed(1)}%</span>
-            </div>
-
-            <div class="metric">
-                <label>Semantic Similarity</label>
-                <div class="progress-bar">
-                    <div class="progress semantic" style="width:${comp.semantic_similarity * 100}%"></div>
-                </div>
-                <span>${(comp.semantic_similarity * 100).toFixed(1)}%</span>
-            </div>
-
-            <div class="metric">
-                <label>Confidence</label>
-                <div class="progress-bar">
-                    <div class="progress confidence" style="width:${comp.confidence * 100}%"></div>
-                </div>
-                <span>${(comp.confidence * 100).toFixed(1)}%</span>
+        header.innerHTML = `
+            <div class="summary-card">
+                <h2>${result.student}</h2>
+                <p>${result.total_compared} Comparisons</p>
             </div>
         `;
 
-        resultsSection.appendChild(card);
+        resultsSection.appendChild(header);
+
+        result.comparisons.forEach((comp) => {
+            const plagiarismClass = comp.is_plagiarism ? "flag-red" : "flag-green";
+            const plagiarismText = comp.is_plagiarism ? "Plagiarism Detected" : "Clean";
+
+            const card = document.createElement("div");
+            card.className = "result-card enhanced";
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <h3>${comp.other_student}</h3>
+                    <span class="plag-flag ${plagiarismClass}">
+                        ${plagiarismText}
+                    </span>
+                </div>
+
+                <div class="metric">
+                    <label>Textual Similarity</label>
+                    <div class="progress-bar">
+                        <div class="progress" style="width:${comp.textual_similarity * 100}%"></div>
+                    </div>
+                    <span>${(comp.textual_similarity * 100).toFixed(1)}%</span>
+                </div>
+
+                <div class="metric">
+                    <label>Semantic Similarity</label>
+                    <div class="progress-bar">
+                        <div class="progress semantic" style="width:${comp.semantic_similarity * 100}%"></div>
+                    </div>
+                    <span>${(comp.semantic_similarity * 100).toFixed(1)}%</span>
+                </div>
+
+                <div class="metric">
+                    <label>Confidence</label>
+                    <div class="progress-bar">
+                        <div class="progress confidence" style="width:${comp.confidence * 100}%"></div>
+                    </div>
+                    <span>${(comp.confidence * 100).toFixed(1)}%</span>
+                </div>
+            `;
+
+            resultsSection.appendChild(card);
+        });
     });
 
     resultsSection.classList.remove("hidden");
