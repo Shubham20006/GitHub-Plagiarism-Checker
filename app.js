@@ -8,6 +8,7 @@ const errorMessage = document.getElementById("error-message");
 const submitBtn = document.getElementById("submit-btn");
 const retryBtn = document.getElementById("retry-btn");
 const geminiToggle = document.getElementById("use-gemini-toggle");
+const loadingStatus = document.getElementById("loading-status");
 
 addPeerBtn.addEventListener("click", () => {
     const row = document.createElement("div");
@@ -43,6 +44,8 @@ form.addEventListener("submit", async (e) => {
     const gitUrls = [primaryUrl, ...peers];
 
     try {
+        loadingStatus.textContent = "Submitting repositories...";
+
         const response = await fetch("https://bl-assginiq-automation-187791816934.asia-south1.run.app/api/v1/plag-check/check-plagiarism", {
             method: "POST",
             headers: {
@@ -53,19 +56,17 @@ form.addEventListener("submit", async (e) => {
                 use_gemini: useGemini
             })
         });
-        console.log(response);
 
-        if (!response.ok) {
-            throw new Error("API error");
-        }
+        if (!response.ok) throw new Error("Failed to start job");
 
         const data = await response.json();
-        renderResults(data.payload.result);
+        const taskId = data.payload.task_id;
+
+        await pollJobStatus(taskId);
 
     } catch (err) {
         errorMessage.textContent = "Failed to analyze repositories.";
         errorState.classList.remove("hidden");
-    } finally {
         loadingState.classList.add("hidden");
         submitBtn.classList.remove("loading");
     }
@@ -74,6 +75,63 @@ form.addEventListener("submit", async (e) => {
 retryBtn.addEventListener("click", () => {
     errorState.classList.add("hidden");
 });
+
+async function pollJobStatus(taskId) {
+    const statusUrl = `https://bl-assginiq-automation-187791816934.asia-south1.run.app/api/v1/plag-check/job-status/${taskId}`;
+
+    let attempts = 0;
+    const maxAttempts = 30;
+
+    const interval = setInterval(async () => {
+        try {
+            attempts++;
+
+            loadingStatus.textContent = `Analyzing... (${attempts})`;
+
+            const res = await fetch(statusUrl);
+            const data = await res.json();
+
+            if (data.payload.status === "SUCCESS") {
+                clearInterval(interval);
+                loadingStatus.textContent = "Finalizing results...";
+                await fetchFinalResult(taskId);
+            }
+
+            if (attempts >= maxAttempts) {
+                clearInterval(interval);
+                throw new Error("Timeout");
+            }
+
+        } catch (err) {
+            clearInterval(interval);
+            showError();
+        }
+    }, 2000);
+}
+
+async function fetchFinalResult(taskId) {
+    try {
+        const resultUrl = `https://bl-assginiq-automation-187791816934.asia-south1.run.app/api/v1/plag-check/task-result/${taskId}`;
+
+        const res = await fetch(resultUrl);
+        const data = await res.json();
+
+        renderResults(data.payload.result);
+
+    } catch (err) {
+        showError();
+    } finally {
+        loadingState.classList.add("hidden");
+        submitBtn.classList.remove("loading");
+    }
+}
+
+function showError() {
+    loadingState.classList.add("hidden");
+    submitBtn.classList.remove("loading");
+    errorMessage.textContent = "Analysis failed or timed out.";
+    errorState.classList.remove("hidden");
+}
 
 function renderResults(result) {
     resultsSection.innerHTML = "";
