@@ -79,17 +79,18 @@ async function pollJobStatus(taskId) {
     const statusUrl = `https://bl-assginiq-automation-187791816934.asia-south1.run.app/api/v1/plag-check/job-status/${taskId}`;
 
     let attempts = 0;
-    const maxAttempts = 30;
+    const maxAttempts = 60;
 
     const interval = setInterval(async () => {
         try {
             attempts++;
-            loadingStatus.textContent = `Analyzing... (${attempts})`;
 
             const res = await fetch(statusUrl);
             const data = await res.json();
 
             const status = data?.payload?.status || data?.status;
+
+            loadingStatus.textContent = `Status: ${status} (${attempts})`;
 
             if (status === "SUCCESS") {
                 clearInterval(interval);
