@@ -1354,3 +1354,65 @@ input {
 .progress.confidence {
     background: linear-gradient(90deg, #22c55e, #4ade80);
 }
+
+.result-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: #111;
+    color: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.result-table th,
+.result-table td {
+    padding: 12px 15px;
+    text-align: left;
+}
+
+.result-table thead {
+    background: #222;
+}
+
+.result-table tr {
+    border-bottom: 1px solid #333;
+}
+
+.result-table tr:hover {
+    background: #1a1a1a;
+}
+
+.flag-red {
+    background: #ff4d4f;
+    padding: 5px 10px;
+    border-radius: 6px;
+    color: white !important;
+}
+
+.flag-green {
+    background: #52c41a;
+    padding: 5px 10px;
+    border-radius: 6px;
+    color: white !important;
+
+}
+
+.status-badge {
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-badge.danger {
+    background: #ffeaea;
+    color: #d93025;
+    border: 1px solid #ff4d4f;
+}
+
+.status-badge.safe {
+    background: #e6ffed;
+    color: #2e7d32;
+    border: 1px solid #52c41a;
+}

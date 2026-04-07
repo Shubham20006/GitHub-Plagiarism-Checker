@@ -87,7 +87,6 @@ async function pollJobStatus(taskId) {
 
             const res = await fetch(statusUrl);
             const data = await res.json();
-
             const status = data?.payload?.status || data?.status;
 
             loadingStatus.textContent = `Status: ${status} (${attempts})`;
@@ -146,62 +145,88 @@ function showError(message) {
 function renderResults(results) {
     resultsSection.innerHTML = "";
 
+    const uniquePairs = new Map();
+
     results.forEach((result) => {
-        const header = document.createElement("div");
-        header.className = "result-summary";
-
-        header.innerHTML = `
-            <div class="summary-card">
-                <h2>${result.student}</h2>
-                <p>${result.total_compared} Comparisons</p>
-            </div>
-        `;
-
-        resultsSection.appendChild(header);
-
         result.comparisons.forEach((comp) => {
-            const plagiarismClass = comp.is_plagiarism ? "flag-red" : "flag-green";
-            const plagiarismText = comp.is_plagiarism ? "Plagiarism Detected" : "Clean";
+            const pairKey = [result.student, comp.other_student].sort().join("-");
 
-            const card = document.createElement("div");
-            card.className = "result-card enhanced";
-
-            card.innerHTML = `
-                <div class="card-header">
-                    <h3>${comp.other_student}</h3>
-                    <span class="plag-flag ${plagiarismClass}">
-                        ${plagiarismText}
-                    </span>
-                </div>
-
-                <div class="metric">
-                    <label>Textual Similarity</label>
-                    <div class="progress-bar">
-                        <div class="progress" style="width:${comp.textual_similarity * 100}%"></div>
-                    </div>
-                    <span>${(comp.textual_similarity * 100).toFixed(1)}%</span>
-                </div>
-
-                <div class="metric">
-                    <label>Semantic Similarity</label>
-                    <div class="progress-bar">
-                        <div class="progress semantic" style="width:${comp.semantic_similarity * 100}%"></div>
-                    </div>
-                    <span>${(comp.semantic_similarity * 100).toFixed(1)}%</span>
-                </div>
-
-                <div class="metric">
-                    <label>Confidence</label>
-                    <div class="progress-bar">
-                        <div class="progress confidence" style="width:${comp.confidence * 100}%"></div>
-                    </div>
-                    <span>${(comp.confidence * 100).toFixed(1)}%</span>
-                </div>
-            `;
-
-            resultsSection.appendChild(card);
+            if (!uniquePairs.has(pairKey)) {
+                uniquePairs.set(pairKey, {
+                    student1: result.student,
+                    student2: comp.other_student,
+                    textual: comp.textual_similarity,
+                    semantic: comp.semantic_similarity,
+                    cosine: comp.cosine_similarity,
+                    confidence: comp.confidence,
+                    plagiarism: comp.is_plagiarism
+                });
+            }
         });
     });
 
+    const pairs = Array.from(uniquePairs.values());
+    const totalPairs = pairs.length;
+    const flagged = pairs.filter(p => p.plagiarism === true).length;
+    const clean = totalPairs - flagged;
+
+    const summary = document.createElement("div");
+    summary.className = "report-summary";
+
+    summary.innerHTML = `
+        <h2 class="section-title" style="text-align:center;margin-bottom:15px;">Plagiarism Report</h2>
+        <p style="color:#aaa; font-size:14px; margin-bottom:10px;">
+            This report shows similarity analysis between student repositories.
+            Each row represents a comparison between two students.
+        </p>
+        <p style="margin-bottom:15px;">
+            <strong>Total:</strong> ${totalPairs} &nbsp; | &nbsp;
+            <strong>Clean:</strong> ${clean} &nbsp; | &nbsp;
+            <strong>Plagiarism:</strong> ${flagged}
+        </p>
+    `;
+
+    resultsSection.appendChild(summary);
+
+    const table = document.createElement("table");
+    table.className = "result-table";
+
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Student 1</th>
+                <th>Student 2</th>
+                <th>Textual %</th>
+                <th>Semantic %</th>
+                <th>Cosine %</th>
+                <th>Confidence %</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${pairs.map(pair => {
+        const statusClass = pair.plagiarism ? "flag-red" : "flag-green";
+        const statusText = pair.plagiarism ? "Plagiarism" : "Clean";
+
+        return `
+                    <tr>
+                        <td>${pair.student1}</td>
+                        <td>${pair.student2}</td>
+                        <td>${(pair.textual * 100).toFixed(1)}%</td>
+                        <td>${(pair.semantic * 100).toFixed(1)}%</td>
+                        <td>${(pair.cosine * 100).toFixed(1)}%</td>
+                        <td>${(pair.confidence * 100).toFixed(1)}%</td>
+                        <td>
+                            <span class="plag-flag ${statusClass}">
+                                ${statusText}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+    }).join("")}
+        </tbody>
+    `;
+
+    resultsSection.appendChild(table);
     resultsSection.classList.remove("hidden");
 }
