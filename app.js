@@ -60,7 +60,8 @@ form.addEventListener("submit", async (e) => {
         if (!response.ok) throw new Error("Failed to start job");
 
         const data = await response.json();
-        const taskId = data.payload.task_id;
+        console.log("Data after posting:", data);
+        const taskId = data?.payload?.task_id;
 
         await pollJobStatus(taskId);
 
