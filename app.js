@@ -233,3 +233,22 @@ function renderResults(results) {
     resultsSection.appendChild(tableWrapper);
     resultsSection.classList.remove("hidden");
 }
+
+const themeToggle = document.getElementById("theme-toggle");
+
+// Load saved theme
+if (localStorage.getItem("theme") === "light") {
+    document.body.classList.add("light-theme");
+    themeToggle.textContent = "☀️";
+}
+
+// Toggle theme
+themeToggle.addEventListener("click", () => {
+    document.body.classList.toggle("light-theme");
+
+    const isLight = document.body.classList.contains("light-theme");
+
+    themeToggle.textContent = isLight ? "☀️" : "🌙";
+
+    localStorage.setItem("theme", isLight ? "light" : "dark");
+});
