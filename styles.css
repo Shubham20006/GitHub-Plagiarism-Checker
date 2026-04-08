@@ -203,7 +203,7 @@ input {
     align-items: center;
     gap: 10px;
     font-weight: 700;
-    font-size: 1.2rem
+    font-size: 1.2rem;
 }
 
 .logo-icon {
@@ -1579,4 +1579,12 @@ body.light-theme .flag-green {
 body.light-theme .flag-red {
     background: #fee2e2;
     color: #b91c1c !important;
+}
+.bl-logo {
+    height: 80px !important;
+    width: auto !important;
+    object-fit: contain;
+    transition: opacity 0.3s ease;
+    position: relative;
+    left: 2rem;
 }

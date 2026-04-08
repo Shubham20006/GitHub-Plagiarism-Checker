@@ -37,6 +37,11 @@ form.addEventListener("submit", async (e) => {
     loadingState.classList.remove("hidden");
     submitBtn.classList.add("loading");
 
+     loadingState.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+    });
+    
     const primaryUrl = document.getElementById("primary-url").value;
     const peerInputs = document.querySelectorAll(".peer-input");
     const peers = Array.from(peerInputs).map(input => input.value);
@@ -141,6 +146,11 @@ function showError(message) {
     submitBtn.classList.remove("loading");
     errorMessage.textContent = message;
     errorState.classList.remove("hidden");
+    
+    errorState.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+    });
 }
 
 function renderResults(results) {
@@ -232,15 +242,39 @@ function renderResults(results) {
     tableWrapper.appendChild(table);
     resultsSection.appendChild(tableWrapper);
     resultsSection.classList.remove("hidden");
+  
+    resultsSection.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+});
 }
-
 const themeToggle = document.getElementById("theme-toggle");
+const logos = document.querySelectorAll(".bl-logo");
 
-// Load saved theme
-if (localStorage.getItem("theme") === "light") {
-    document.body.classList.add("light-theme");
-    themeToggle.textContent = "☀️";
+// Update logos instantly (NO animation)
+function updateLogo() {
+    const isLight = document.body.classList.contains("light-theme");
+
+    logos.forEach((logo) => {
+        logo.src = isLight
+            ? "./assets/Logo 3 Dark Text  (2).jpg"
+            : "./assets/Logo 3, White Text  (1).png";
+    });
 }
+
+// Apply saved theme BEFORE anything
+(function initTheme() {
+    const savedTheme = localStorage.getItem("theme");
+
+    if (savedTheme === "light") {
+        document.body.classList.add("light-theme");
+        themeToggle.textContent = "☀️";
+    } else {
+        themeToggle.textContent = "🌙";
+    }
+
+    updateLogo(); // 🔥 instant logo set
+})();
 
 // Toggle theme
 themeToggle.addEventListener("click", () => {
@@ -249,6 +283,7 @@ themeToggle.addEventListener("click", () => {
     const isLight = document.body.classList.contains("light-theme");
 
     themeToggle.textContent = isLight ? "☀️" : "🌙";
-
     localStorage.setItem("theme", isLight ? "light" : "dark");
+
+    updateLogo(); // 🔥 instant update
 });
